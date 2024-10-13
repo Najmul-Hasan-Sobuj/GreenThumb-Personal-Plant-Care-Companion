@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PlantType extends Model
 {
@@ -15,4 +16,13 @@ class PlantType extends Model
      * @var array
      */
     protected $guarded = [];
+
+    protected $casts = [
+        'care_difficulty' => 'string',
+    ];
+
+    public function plants(): HasMany
+    {
+        return $this->hasMany(Plant::class);
+    }
 }
