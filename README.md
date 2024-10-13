@@ -1,4 +1,4 @@
-🌿 **GreenThumb – Your Personal Plant Care Companion** 🌿
+# GreenThumb – Your Personal Plant Care Companion 🌿🌿🌿
 
 If you’re like me, balancing a busy life and a love for plants can feel like a juggling act. Some days, I forget to water my ferns or give my succulents the TLC they deserve. That’s where **GreenThumb** comes in – an app I’m really excited to share with all of you plant lovers out there!
 
