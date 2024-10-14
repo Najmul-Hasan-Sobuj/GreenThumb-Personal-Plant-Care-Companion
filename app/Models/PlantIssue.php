@@ -15,4 +15,20 @@ class PlantIssue extends Model
      * @var array
      */
     protected $guarded = [];
+
+    /**
+     * Cast attributes to native types.
+     */
+    protected $casts = [
+        'identified_date' => 'date',
+        'resolved_date' => 'date',
+    ];
+
+    /**
+     * Relationship with the Plant model.
+     */
+    public function plant()
+    {
+        return $this->belongsTo(Plant::class);
+    }
 }
