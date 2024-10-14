@@ -15,4 +15,13 @@ class PlantPhoto extends Model
      * @var array
      */
     protected $guarded = [];
+
+    protected $casts = [
+        'taken_date' => 'date',
+    ];
+
+    public function plant()
+    {
+        return $this->belongsTo(Plant::class);
+    }
 }

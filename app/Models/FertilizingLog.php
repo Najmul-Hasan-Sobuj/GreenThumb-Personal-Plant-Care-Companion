@@ -15,4 +15,21 @@ class FertilizingLog extends Model
      * @var array
      */
     protected $guarded = [];
+
+    /**
+     * Cast attributes to native types.
+     */
+    protected $casts = [
+        'fertilizing_date' => 'date',
+        'amount' => 'decimal:2',
+    ];
+
+    /**
+     * Relationship with the Plant model.
+     * Assuming each fertilizing log belongs to a plant.
+     */
+    public function plant()
+    {
+        return $this->belongsTo(Plant::class);
+    }
 }

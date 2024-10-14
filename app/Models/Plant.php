@@ -32,4 +32,9 @@ class Plant extends Model
     {
         return $this->belongsTo(PlantType::class);
     }
+
+    public function photos()
+    {
+        return $this->hasMany(PlantPhoto::class);
+    }
 }
