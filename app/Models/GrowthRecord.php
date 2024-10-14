@@ -15,4 +15,9 @@ class GrowthRecord extends Model
      * @var array
      */
     protected $guarded = [];
+
+    public function plant()
+    {
+        return $this->belongsTo(Plant::class);
+    }
 }

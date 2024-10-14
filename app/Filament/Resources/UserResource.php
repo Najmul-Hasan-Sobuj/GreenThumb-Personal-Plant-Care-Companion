@@ -2,20 +2,16 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms;
-use App\Models\User;
-use Filament\Tables;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
-use Filament\Resources\Resource;
-use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\FileUpload;
-use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\UserResource\Pages;
+use App\Models\User;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\UserResource\RelationManagers;
+use Illuminate\Support\Facades\Storage;
 
 class UserResource extends Resource
 {
@@ -23,27 +19,48 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationLabel = 'Users';
-
-    protected static ?string $label = 'User';
-
-    protected static ?string $pluralLabel = 'Users';
-
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('name')
+                Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-
-                TextInput::make('email')
+                Forms\Components\TextInput::make('email')
                     ->email()
                     ->required()
+                    ->unique(ignoreRecord: true)
                     ->maxLength(255),
-
-                Textarea::make('bio')
+                Forms\Components\FileUpload::make('avatar')
+                    ->image()
+                    ->imageCropAspectRatio('1:1')
+                    ->imageResizeTargetWidth('200')
+                    ->imageResizeTargetHeight('200')
+                    ->directory('avatars')
+                    ->visibility('public')
+                    ->storeFileNamesIn('avatar_file_names')
                     ->nullable(),
+                Forms\Components\Textarea::make('bio')
+                    ->nullable()
+                    ->maxLength(65535),
+                Forms\Components\Toggle::make('receive_notifications')
+                    ->default(true),
+                Forms\Components\DateTimePicker::make('email_verified_at')
+                    ->nullable(),
+                Forms\Components\TextInput::make('password')
+                    ->password()
+                    ->dehydrateStateUsing(fn($state) => filled($state) ? bcrypt($state) : null)
+                    ->dehydrated(fn($state) => filled($state))
+                    ->required(fn(string $context): bool => $context === 'create')
+                    ->maxLength(255)
+                    ->same('passwordConfirmation')
+                    ->label(fn(string $context): string => $context === 'edit' ? 'New Password' : 'Password'),
+                Forms\Components\TextInput::make('passwordConfirmation')
+                    ->password()
+                    ->label('Password Confirmation')
+                    ->required(fn(string $context): bool => $context === 'create')
+                    ->maxLength(255)
+                    ->dehydrated(false),
             ]);
     }
 
@@ -51,17 +68,39 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id'),
-                Tables\Columns\TextColumn::make('name')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('email')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('created_at')->date(),
-                Tables\Columns\TextColumn::make('updated_at')->date(),
+                Tables\Columns\TextColumn::make('id')
+                    ->sortable(),
+                Tables\Columns\ImageColumn::make('avatar')
+                    ->circular(),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('email')
+                    ->searchable(),
+                Tables\Columns\IconColumn::make('receive_notifications')
+                    ->boolean(),
+                Tables\Columns\TextColumn::make('email_verified_at')
+                    ->dateTime()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\TernaryFilter::make('email_verified_at')
+                    ->nullable(),
+                Tables\Filters\SelectFilter::make('receive_notifications')
+                    ->options([
+                        '1' => 'Yes',
+                        '0' => 'No',
+                    ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->modalHeading('Edit user'),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
